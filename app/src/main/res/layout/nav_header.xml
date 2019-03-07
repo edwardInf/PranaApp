@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="120dp"
+    android:background="?attr/colorPrimaryDark"
+    android:theme="@style/ThemeOverlay.AppCompat.Dark"
+    android:orientation="vertical"
+    android:gravity="bottom">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="5dp"
+        android:paddingTop="10dp"
+        android:layout_gravity="center_vertical"
+        android:gravity="center_vertical">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/appName"
+            android:textStyle="bold"
+            android:textSize="25sp"
+            android:textColor="#ffffff"
+            android:layout_marginLeft="10dp"
+            android:layout_centerVertical="true" />
+        <ImageButton
+            android:id="@+id/imageButton"
+            android:padding="10dp"
+            android:background="@drawable/button_effect"
+            android:contentDescription="@string/appName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:src="@mipmap/navbar_img"
+            android:scaleType="centerCrop"/>
+    </RelativeLayout>
+
+</FrameLayout>

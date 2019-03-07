@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v4.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorAccentBlack">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_gravity="start"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:id="@+id/layout_navdraw">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="110dp"
+            android:paddingBottom="5dp"
+            android:paddingTop="10dp"
+            android:background="?attr/colorPrimaryDark"
+            android:layout_gravity="center_vertical"
+            android:gravity="center_vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/appName"
+                android:textStyle="bold"
+                android:textSize="25sp"
+                android:textColor="#ffffff"
+                android:layout_marginLeft="10dp"
+                android:layout_centerVertical="true" />
+            <ImageButton
+                android:id="@+id/imageButton"
+                android:padding="10dp"
+                android:background="@drawable/button_effect"
+                android:contentDescription="@string/appName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:src="@mipmap/navbar_img"
+                android:scaleType="centerCrop"/>
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:orientation="vertical"
+            android:layout_height="match_parent">
+            <ListView
+                android:id="@+id/nav_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@null"
+                android:layout_marginTop="10dp"
+                android:clickable="true"/>
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="5dp"
+                android:background="@color/background_grey"/>
+            <ListView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/lvMain"
+                android:dividerHeight="1dp"
+                android:divider="#FFFFFF">
+            </ListView>
+        </LinearLayout>
+    </LinearLayout>
+
+</android.support.v4.widget.NestedScrollView>
+
+
+
+
+
+
+
