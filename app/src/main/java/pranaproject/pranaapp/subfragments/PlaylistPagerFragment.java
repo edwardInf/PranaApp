@@ -34,6 +34,7 @@ import pranaproject.pranaapp.dataloaders.PlaylistLoader;
 import pranaproject.pranaapp.dataloaders.PlaylistSongLoader;
 import pranaproject.pranaapp.dataloaders.SongLoader;
 import pranaproject.pranaapp.dataloaders.TopTracksLoader;
+import pranaproject.pranaapp.fragments.ListaRepFragment;
 import pranaproject.pranaapp.fragments.PlaylistFragment;
 import pranaproject.pranaapp.models.Playlist;
 import pranaproject.pranaapp.models.Song;
@@ -58,20 +59,29 @@ public class PlaylistPagerFragment extends Fragment {
     private Playlist playlist;
     public TextView playlistame, songcount, playlistnumber, playlisttype;
     public ImageView playlistImage;
-    //private View foreground;
+    private View foreground;
     private Context mContext;
+    public static Boolean bandera;
 
-    public static PlaylistPagerFragment newInstance(int pageNumber) {
+    public static PlaylistPagerFragment newInstance(int pageNumber, Boolean lista) {
         PlaylistPagerFragment fragment = new PlaylistPagerFragment();
         Bundle bundle = new Bundle();
         bundle.putInt(ARG_PAGE_NUMBER, pageNumber);
+        bandera = lista;
         fragment.setArguments(bundle);
         return fragment;
     }
+    public View rootView;
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_playlist_pager, container, false);
+        if (bandera){
+            rootView = inflater.inflate(R.layout.fragment_playlist_pager, container, false);
+
+        }else {
+            rootView = inflater.inflate(R.layout.fragment_listarep_pager, container, false);
+            foreground = rootView.findViewById(R.id.foreground);
+        }
 
         final List<Playlist> playlists = PlaylistLoader.getPlaylists(getActivity(), true);
 
@@ -83,29 +93,28 @@ public class PlaylistPagerFragment extends Fragment {
         songcount = (TextView) rootView.findViewById(R.id.songcount);
         playlisttype = (TextView) rootView.findViewById(R.id.playlisttype);
         playlistImage = (ImageView) rootView.findViewById(R.id.playlist_image);
-        //foreground = rootView.findViewById(R.id.foreground);
-
 
 
         playlistImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ArrayList<Pair> tranitionViews = new ArrayList<>();
-                /*tranitionViews.add(0, Pair.create((View) playlistame, "transition_playlist_name"));
-                tranitionViews.add(1, Pair.create((View) playlistImage, "transition_album_art"));
-                tranitionViews.add(2, Pair.create(foreground, "transition_foreground"));*/
 
-                /*NavigationUtils.navigateToPlaylistDetalle(getActivity(), getPlaylistType(),
-                        firstAlbumID, String.valueOf(playlistame.getText()), foregroundColor,
-                        playlist.id, tranitionViews);*/
+                if (bandera){
+                    PlaylistFragment.showDetallePlaylist((String) playlistame.getText(),
+                            String.valueOf(songcount.getText()),
+                            String.valueOf(getPlaylistType()),firstAlbumID,playlist.id,mContext);
 
-                PlaylistFragment.showDetallePlaylist((String) playlistame.getText(),
-                        String.valueOf(songcount.getText()),
-                        String.valueOf(getPlaylistType()),firstAlbumID,playlist.id,mContext);
+                }else {
+                    ArrayList<Pair> tranitionViews = new ArrayList<>();
+                    tranitionViews.add(0, Pair.create((View) playlistame, "transition_playlist_name"));
+                    tranitionViews.add(1, Pair.create((View) playlistImage, "transition_album_art"));
+                    tranitionViews.add(2, Pair.create(foreground, "transition_foreground"));
+                    NavigationUtils.navigateToPlaylistDetalle(getActivity(), getPlaylistType(),
+                            firstAlbumID, String.valueOf(playlistame.getText()), foregroundColor,
+                            playlist.id, tranitionViews);
+                }
 
-               /* NavigationUtils.navigateToPlaylistDet(getActivity(), getPlaylistType(),
-                        firstAlbumID, String.valueOf(playlistame.getText()),
-                        playlist.id);*/
+
 
             }
         });
@@ -210,7 +219,7 @@ public class PlaylistPagerFragment extends Fragment {
         protected void onPostExecute(String uri) {
             ImageLoader.getInstance().displayImage(uri, playlistImage,
                     new DisplayImageOptions.Builder().cacheInMemory(true)
-                            .showImageOnFail(R.drawable.ic_empty_music2)
+                            .showImageOnFail(R.drawable.ic_prueba2)
                             .resetViewBeforeLoading(true)
                             .build(), new SimpleImageLoadingListener() {
                         @Override

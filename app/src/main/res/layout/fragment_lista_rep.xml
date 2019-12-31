@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
 xmlns:app="http://schemas.android.com/apk/res-auto"
-android:id="@+id/fragment_playlist"
+android:id="@+id/fragment_playlist2"
 android:layout_width="match_parent"
 android:layout_height="match_parent"
 android:orientation="vertical"
 android:background="@color/colorAccentBlack">
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
 
     <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar_listrep"
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:elevation="5dp"
@@ -23,65 +24,26 @@ android:background="@color/colorAccentBlack">
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
 
-    <pranaproject.pranaapp.widgets.MultiViewPager
-        android:id="@+id/playlistpager_li"
-        android:layout_width="match_parent"
-        android:layout_height="300px"
-        android:layout_gravity="bottom"
-        app:matchChildWidth="@+id/vg_cover" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingBottom="10dp"
-        android:paddingTop="10dp"
-        android:background="@color/colorPrimary">
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_gravity="start"
-            android:layout_weight="1">
-            <TextView
-                android:id="@+id/txt_namePlaylistList"
-                android:textSize="16sp"
-                android:maxLines="2"
-                android:ellipsize="end"
-                android:layout_marginRight="8dp"
-                android:layout_marginLeft="8dp"
-                android:textColor="#ffffff"
-                android:textStyle="bold"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:transitionName="transition_playlist_name"/>
-            <TextView
-                android:id="@+id/txt_cancPlaylist"
-                android:textSize="11sp"
-                android:maxLines="1"
-                android:paddingTop="3dp"
-                android:ellipsize="end"
-                android:textColor="#ffffff"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginRight="8dp"
-                android:layout_marginLeft="8dp" />
-        </LinearLayout>
-        <ImageButton
-            android:id="@+id/btn_addPistPLay"
-            android:layout_width="35dp"
-            android:layout_height="35dp"
-            android:background="@drawable/addsongplay"
-            android:layout_gravity="right"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"/>
-    </LinearLayout>
-
     <FrameLayout
-        android:id="@+id/framelayout_listplay"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent">
 
+        <pranaproject.pranaapp.widgets.MultiViewPager
+            android:id="@+id/playlistpager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="bottom"
+            app:matchChildWidth="@+id/vg_cover" />
+
+        <android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/recyclerview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fadeScrollbars="true"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+    </FrameLayout>
 </LinearLayout>
 
 </FrameLayout>

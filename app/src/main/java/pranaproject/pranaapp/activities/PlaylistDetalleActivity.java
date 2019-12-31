@@ -15,24 +15,33 @@
 package pranaproject.pranaapp.activities;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.annotation.StyleRes;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.transition.Transition;
-import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.afollestad.appthemeengine.Config;
 import com.afollestad.appthemeengine.customizers.ATEActivityThemeCustomizer;
 import pranaproject.pranaapp.R;
 import pranaproject.pranaapp.adapters.SongsListAdapter;
 import pranaproject.pranaapp.dataloaders.LastAddedLoader;
+import pranaproject.pranaapp.dataloaders.PlaylistLoader;
 import pranaproject.pranaapp.dataloaders.PlaylistSongLoader;
 import pranaproject.pranaapp.dataloaders.SongLoader;
 import pranaproject.pranaapp.dataloaders.TopTracksLoader;
@@ -42,13 +51,18 @@ import pranaproject.pranaapp.utils.Constants;
 import pranaproject.pranaapp.utils.PreferencesUtility;
 import pranaproject.pranaapp.utils.TimberUtils;
 import pranaproject.pranaapp.widgets.DividerItemDecoration;
+import pranaproject.pranaapp.widgets.DragSortRecycler;
+
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
 import java.util.HashMap;
 import java.util.List;
 
-public class PlaylistDetalleActivity extends BaseThemedActivity implements ATEActivityThemeCustomizer {
+public class  PlaylistDetalleActivity extends BaseActivity implements ATEActivityThemeCustomizer {
+
 
     String action;
     long playlistID;
@@ -84,6 +98,7 @@ public class PlaylistDetalleActivity extends BaseThemedActivity implements ATEAc
     private ImageView blurFrame;
     private TextView playlistname;
     private View foreground;
+    private boolean animate;
 
     @TargetApi(21)
     @Override
@@ -93,6 +108,11 @@ public class PlaylistDetalleActivity extends BaseThemedActivity implements ATEAc
         setContentView(R.layout.activity_playlist_detalle);
 
         action = getIntent().getAction();
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle(getIntent().getExtras().getString(Constants.PLAYLIST_NAME));
 
         playlistsMap.put(Constants.NAVIGATE_PLAYLIST_LASTADDED, playlistLastAdded);
         playlistsMap.put(Constants.NAVIGATE_PLAYLIST_RECENT, playlistRecents);
@@ -108,7 +128,8 @@ public class PlaylistDetalleActivity extends BaseThemedActivity implements ATEAc
 
         setAlbumart();
 
-        if (TimberUtils.isLollipop() && PreferencesUtility.getInstance(this).getAnimations()) {
+        animate = getIntent().getBooleanExtra(Constants.ACTIVITY_TRANSITION, false);
+        if (animate && TimberUtils.isLollipop()) {
             getWindow().getEnterTransition().addListener(new EnterTransitionListener());
         } else {
             setUpSongs();
@@ -117,7 +138,7 @@ public class PlaylistDetalleActivity extends BaseThemedActivity implements ATEAc
     }
 
     private void setAlbumart() {
-        playlistname.setText(getIntent().getExtras().getString(Constants.PLAYLIST_NAME));
+        //playlistname.setText(getIntent().getExtras().getString(Constants.PLAYLIST_NAME));
         foreground.setBackgroundColor(getIntent().getExtras().getInt(Constants.PLAYLIST_FOREGROUND_COLOR));
         loadBitmap(TimberUtils.getAlbumArtUri(getIntent().getExtras().getLong(Constants.ALBUM_ID)).toString());
     }
@@ -126,22 +147,41 @@ public class PlaylistDetalleActivity extends BaseThemedActivity implements ATEAc
         Runnable navigation = playlistsMap.get(action);
         if (navigation != null) {
             navigation.run();
+
+            DragSortRecycler dragSortRecycler = new DragSortRecycler();
+            dragSortRecycler.setViewHandleId(R.id.reorder);
+
+            dragSortRecycler.setOnItemMovedListener(new DragSortRecycler.OnItemMovedListener() {
+                @Override
+                public void onItemMoved(int from, int to) {
+                    Song song = mAdapter.getSongAt(from);
+                    mAdapter.removeSongAt(from);
+                    mAdapter.addSongTo(to, song);
+                    mAdapter.notifyDataSetChanged();
+                    MediaStore.Audio.Playlists.Members.moveItem(getContentResolver(),
+                            playlistID, from, to);
+                }
+            });
+
+            recyclerView.addItemDecoration(dragSortRecycler);
+            recyclerView.addOnItemTouchListener(dragSortRecycler);
+            recyclerView.addOnScrollListener(dragSortRecycler.getScrollListener());
+
         } else {
-            Log.d("PlaylistDetail", "mo action specified");
         }
     }
 
     private void loadBitmap(String uri) {
         ImageLoader.getInstance().displayImage(uri, blurFrame,
                 new DisplayImageOptions.Builder().cacheInMemory(true)
-                        .showImageOnFail(R.drawable.ic_empty_music2)
+                        .showImageOnFail(R.drawable.ic_prueba1)
                         .resetViewBeforeLoading(true)
                         .build());
     }
 
     private void setRecyclerViewAapter() {
         recyclerView.setAdapter(mAdapter);
-        if (TimberUtils.isLollipop() && PreferencesUtility.getInstance(mContext).getAnimations()) {
+        if (animate && TimberUtils.isLollipop() ) {
             Handler handler = new Handler();
             handler.postDelayed(new Runnable() {
                 @Override
@@ -149,7 +189,8 @@ public class PlaylistDetalleActivity extends BaseThemedActivity implements ATEAc
                     recyclerView.addItemDecoration(new DividerItemDecoration(mContext, DividerItemDecoration.VERTICAL_LIST, R.drawable.item_divider_white));
                 }
             }, 250);
-        } else
+        }
+        else
             recyclerView.addItemDecoration(new DividerItemDecoration(mContext, DividerItemDecoration.VERTICAL_LIST, R.drawable.item_divider_white));
     }
 
@@ -165,7 +206,8 @@ public class PlaylistDetalleActivity extends BaseThemedActivity implements ATEAc
         @Override
         protected String doInBackground(String... params) {
             List<Song> lastadded = LastAddedLoader.getLastAddedSongs(mContext);
-            mAdapter = new SongsListAdapter(mContext, lastadded, true);
+            mAdapter = new SongsListAdapter(mContext, lastadded, false);
+            mAdapter.setPlaylistId(playlistID);
             return "Executed";
         }
 
@@ -185,7 +227,8 @@ public class PlaylistDetalleActivity extends BaseThemedActivity implements ATEAc
         protected String doInBackground(String... params) {
             TopTracksLoader loader = new TopTracksLoader(mContext, TopTracksLoader.QueryType.RecentSongs);
             List<Song> recentsongs = SongLoader.getSongsForCursor(TopTracksLoader.getCursor());
-            mAdapter = new SongsListAdapter(mContext, recentsongs, true);
+            mAdapter = new SongsListAdapter(mContext, recentsongs, false);
+            mAdapter.setPlaylistId(playlistID);
             return "Executed";
         }
 
@@ -206,7 +249,8 @@ public class PlaylistDetalleActivity extends BaseThemedActivity implements ATEAc
         protected String doInBackground(String... params) {
             TopTracksLoader loader = new TopTracksLoader(mContext, TopTracksLoader.QueryType.TopTracks);
             List<Song> toptracks = SongLoader.getSongsForCursor(TopTracksLoader.getCursor());
-            mAdapter = new SongsListAdapter(mContext, toptracks, true);
+            mAdapter = new SongsListAdapter(mContext, toptracks, false);
+            mAdapter.setPlaylistId(playlistID);
             return "Executed";
         }
 
@@ -226,7 +270,8 @@ public class PlaylistDetalleActivity extends BaseThemedActivity implements ATEAc
         protected String doInBackground(String... params) {
             playlistID = getIntent().getExtras().getLong(Constants.PLAYLIST_ID);
             List<Song> playlistsongs = PlaylistSongLoader.getSongsInPlaylist(mContext, playlistID);
-            mAdapter = new SongsListAdapter(mContext, playlistsongs, true);
+            mAdapter = new SongsListAdapter(mContext, playlistsongs, false);
+            mAdapter.setPlaylistId(playlistID);
             return "Executed";
         }
 
@@ -252,5 +297,101 @@ public class PlaylistDetalleActivity extends BaseThemedActivity implements ATEAc
 
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(final Menu menu) {
+
+        getMenuInflater().inflate(R.menu.menu_listarep_detalle, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        if (action.equals(Constants.NAVIGATE_PLAYLIST_USERCREATED)) {
+            menu.findItem(R.id.action_delete_playlist).setVisible(true);
+            menu.findItem(R.id.action_clear_auto_playlist).setVisible(false);
+        } else {
+            menu.findItem(R.id.action_delete_playlist).setVisible(false);
+            menu.findItem(R.id.action_clear_auto_playlist).setTitle("Limpiar " + playlistname.getText().toString());
+        }
+
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(final MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                super.onBackPressed();
+                return true;
+            case R.id.action_delete_playlist:
+                showDeletePlaylistDialog();
+                break;
+            case R.id.action_clear_auto_playlist:
+                clearAutoPlaylists();
+                break;
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void showDeletePlaylistDialog() {
+        new MaterialDialog.Builder(this)
+                .title("¿Eliminar Lista?")
+                .content("¿Estas seguro de querer eliminar la lista " + playlistname.getText().toString() + " ?")
+                .positiveText("Eliminar")
+                .negativeText("Cancelar")
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        PlaylistLoader.deletePlaylists(PlaylistDetalleActivity.this, playlistID);
+                        Intent returnIntent = new Intent();
+                        setResult(Activity.RESULT_OK, returnIntent);
+                        finish();
+                    }
+                })
+                .onNegative(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        dialog.dismiss();
+                    }
+                })
+                .show();
+    }
+
+    private void clearAutoPlaylists() {
+        switch (action) {
+            case Constants.NAVIGATE_PLAYLIST_LASTADDED:
+                TimberUtils.clearLastAdded(this);
+                break;
+            case Constants.NAVIGATE_PLAYLIST_RECENT:
+                TimberUtils.clearRecent(this);
+                break;
+            case Constants.NAVIGATE_PLAYLIST_TOPTRACKS:
+                TimberUtils.clearTopTracks(this);
+                break;
+        }
+        Intent returnIntent = new Intent();
+        setResult(Activity.RESULT_OK, returnIntent);
+        finish();
+    }
+
+    @Override
+    public void onMetaChanged() {
+        super.onMetaChanged();
+        if (mAdapter != null)
+            mAdapter.notifyDataSetChanged();
+    }
+
+/*
+    @Override
+    public int getToolbarColor() {
+        return Color.TRANSPARENT;
+    }
+
+    @Override
+    public int getLightToolbarMode() {
+        return Config.LIGHT_TOOLBAR_AUTO;
+    }*/
 
 }

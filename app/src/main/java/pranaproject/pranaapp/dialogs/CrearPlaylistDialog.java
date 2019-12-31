@@ -9,6 +9,7 @@ import android.widget.Toast;
 import com.afollestad.materialdialogs.MaterialDialog;
 import pranaproject.pranaapp.MusicPlayer;
 import pranaproject.pranaapp.R;
+import pranaproject.pranaapp.fragments.ListaRepFragment;
 import pranaproject.pranaapp.fragments.PlaylistFragment;
 import pranaproject.pranaapp.models.Song;
 
@@ -56,6 +57,10 @@ public class CrearPlaylistDialog extends DialogFragment {
                         Toast.makeText(getActivity(), "Playlist Creado", Toast.LENGTH_SHORT).show();
                     if (getParentFragment() instanceof PlaylistFragment) {
                         ((PlaylistFragment) getParentFragment()).updatePlaylists(playistId);
+
+                    }if (getParentFragment() instanceof ListaRepFragment){
+                        ((ListaRepFragment) getParentFragment()).updatePlaylists(playistId);
+
                     }
                 } else {
                     Toast.makeText(getActivity(), "No se puede crear Playlist", Toast.LENGTH_SHORT).show();

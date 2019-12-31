@@ -30,6 +30,8 @@ import android.util.TypedValue;
 
 import pranaproject.pranaapp.MusicPlayer;
 import pranaproject.pranaapp.R;
+import pranaproject.pranaapp.provider.RecentStore;
+import pranaproject.pranaapp.provider.SongPlayCount;
 
 public class TimberUtils {
 
@@ -139,7 +141,8 @@ public class TimberUtils {
         NA(0),
         Artist(1),
         Album(2),
-        Playlist(3);
+        Playlist(3),
+        Genre(2);
 
         public final int mId;
 
@@ -180,6 +183,19 @@ public class TimberUtils {
 
             return null;
         }
+    }
+
+    public static void clearTopTracks(Context context) {
+        SongPlayCount.getInstance(context).deleteAll();
+    }
+
+    public static void clearRecent(Context context) {
+        RecentStore.getInstance(context).deleteAll();
+    }
+
+    public static void clearLastAdded(Context context) {
+        PreferencesUtility.getInstance(context)
+                .setLastAddedCutoff(System.currentTimeMillis());
     }
 
 

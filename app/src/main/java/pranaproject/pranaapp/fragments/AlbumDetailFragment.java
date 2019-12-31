@@ -134,6 +134,7 @@ public class AlbumDetailFragment extends Fragment {
         collapsingToolbarLayout = (CollapsingToolbarLayout) rootView.findViewById(R.id.collapsing_toolbar);
         appBarLayout = (AppBarLayout) rootView.findViewById(R.id.app_bar);
         recyclerView.setEnabled(false);
+
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         album = AlbumLoader.getAlbum(getActivity(), albumID);
@@ -169,12 +170,13 @@ public class AlbumDetailFragment extends Fragment {
         ab.setHomeAsUpIndicator(R.drawable.ic_menu);
         collapsingToolbarLayout.setTitle(album.title);
 
+
     }
 
     private void setAlbumart() {
         ImageLoader.getInstance().displayImage(TimberUtils.getAlbumArtUri(albumID).toString(), albumArt,
                 new DisplayImageOptions.Builder().cacheInMemory(true)
-                        .showImageOnFail(R.drawable.ic_empty_music2)
+                        .showImageOnFail(R.drawable.ic_prueba1)
                         .resetViewBeforeLoading(true)
                         .build(), new ImageLoadingListener() {
                     @Override

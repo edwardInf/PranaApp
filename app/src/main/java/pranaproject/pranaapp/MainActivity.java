@@ -44,6 +44,8 @@ import pranaproject.pranaapp.fragments.AlbumDetailFragment;
 import pranaproject.pranaapp.fragments.AlbumFragment;
 import pranaproject.pranaapp.fragments.ArtistDetailFragment;
 import pranaproject.pranaapp.fragments.ArtistFragment;
+import pranaproject.pranaapp.fragments.FoldersFragment;
+import pranaproject.pranaapp.fragments.GenreFragment;
 import pranaproject.pranaapp.fragments.HomeFragment;
 import pranaproject.pranaapp.fragments.ListaRepFragment;
 import pranaproject.pranaapp.fragments.MainFragment;
@@ -101,10 +103,11 @@ public class MainActivity extends BaseActivity implements ATEActivityThemeCustom
         setContentView(R.layout.activity_main);
         navigationMap.put(Constants.NAVIGATE_LIBRARY, navigateLibrary);
         navigationMap.put(Constants.NAVIGATE_PLAYLIST, navigatePlaylist);
-
         navigationMap.put(Constants.NAVIGATE_ARTIST, navigateArtista);
         navigationMap.put(Constants.NAVIGATE_NOWPLAYING, navigateNowplaying);
         navigationMap.put(Constants.NAVIGATE_ALBUM, navigateAlbum);
+        navigationMap.put(Constants.NAVIGATE_GENRE, navigateGenre);
+        navigationMap.put(Constants.NAVIGATE_FILE, navigateFile);
 
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -338,13 +341,16 @@ public class MainActivity extends BaseActivity implements ATEActivityThemeCustom
                 runnable = navigateArtist;
                 break;
             case UPLOAD_OPTION:
+
                 break;
             case GENRES_OPTION:
+                runnable = navigateGenre;
                 break;
             case LISTREP_OPTION:
                 runnable = navigateListRep;
                 break;
             case CARPETA_OPTION:
+                runnable = navigateFile;
                 break;
             default:
         }
@@ -411,6 +417,7 @@ public class MainActivity extends BaseActivity implements ATEActivityThemeCustom
             //startActivity(new Intent(MainActivity.this, NowPlayingActivity.class));
         }
     };
+
     final PermissionCallback permissionReadstorageCallback = new PermissionCallback() {
         @Override
         public void permissionGranted() {
@@ -452,6 +459,24 @@ public class MainActivity extends BaseActivity implements ATEActivityThemeCustom
             transaction.replace(R.id.fragment_container, fragment).commitAllowingStateLoss();
         }
     };
+
+    Runnable navigateGenre = new Runnable() {
+        public void run() {
+            Fragment fragment = new GenreFragment();
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            transaction.replace(R.id.fragment_container, fragment).commitAllowingStateLoss();
+        }
+    };
+
+    Runnable navigateFile = new Runnable() {
+        public void run() {
+            Fragment fragment = new FoldersFragment();
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            transaction.replace(R.id.fragment_container, fragment).commitAllowingStateLoss();
+        }
+    };
+
+
     @Override
     public void onMetaChanged() {
         super.onMetaChanged();

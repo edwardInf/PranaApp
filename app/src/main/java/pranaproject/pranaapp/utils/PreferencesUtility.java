@@ -18,6 +18,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.AsyncTask;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 
 public final class PreferencesUtility {
@@ -39,6 +40,16 @@ public final class PreferencesUtility {
     private static final String START_PAGE_PREFERENCE_LASTOPENED = "start_page_preference_latopened";
     private static final String NOW_PLAYNG_THEME_VALUE = "now_playing_theme_value";
     private static final String TOGGLE_XPOSED_TRACKSELECTOR = "toggle_xposed_trackselector";
+    public static final String GENRE_SONG_SORT_ORDER = "genre_song_sort_order";
+    public static final String GENRE_SORT_ORDER = "genre_sort_order";
+    private static final String LAST_FOLDER = "last_folder";
+    private static final String TOGGLE_PLAYLIST_VIEW = "toggle_playlist_view";
+    private static final String TOGGLE_SHOW_AUTO_PLAYLIST = "toggle_show_auto_playlist";
+    public static final String LAST_ADDED_CUTOFF = "last_added_cutoff";
+
+
+
+
     private static PreferencesUtility sInstance;
 
     private static SharedPreferences mPreferences;
@@ -84,6 +95,12 @@ public final class PreferencesUtility {
 
     }
 
+    public void storeLastFolder(String path) {
+        SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putString(LAST_FOLDER, path);
+        editor.apply();
+    }
+
     public boolean isAlbumsInGrid() {
         return mPreferences.getBoolean(TOGGLE_ALBUM_GRID, true);
     }
@@ -99,6 +116,10 @@ public final class PreferencesUtility {
             }
         }.execute();
 
+    }
+
+    public String getLastFolder() {
+        return mPreferences.getString(LAST_FOLDER, Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).getPath());
     }
 
     public boolean pauseEnabledOnDetach() {
@@ -211,5 +232,41 @@ public final class PreferencesUtility {
 
     public boolean getXPosedTrackselectorEnabled() {
         return mPreferences.getBoolean(TOGGLE_XPOSED_TRACKSELECTOR, false);
+    }
+
+    public final String getGenreSongSortOrder() {
+        return mPreferences.getString(GENRE_SONG_SORT_ORDER,
+                SortOrder.GenreSongSortOrder.SONG_TRACK_LIST);
+    }
+    public final String getGenreSortOrder() {
+        return mPreferences.getString(GENRE_SORT_ORDER, SortOrder.GenreSortOrder.GENRE_A_Z);
+    }
+    public void setGenreSortOrder(final String value) {
+        setSortOrder(GENRE_SORT_ORDER, value);
+    }
+
+    public int getPlaylistView() {
+        return mPreferences.getInt(TOGGLE_PLAYLIST_VIEW ,0);
+    }
+
+    public void setPlaylistView(final int i) {
+        final SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putInt(TOGGLE_PLAYLIST_VIEW, i);
+        editor.apply();
+    }
+
+    public boolean showAutoPlaylist() {
+        return mPreferences.getBoolean(TOGGLE_SHOW_AUTO_PLAYLIST, true);
+    }
+
+    public void setToggleShowAutoPlaylist(final boolean b) {
+        final SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putBoolean(TOGGLE_SHOW_AUTO_PLAYLIST, b);
+        editor.apply();
+    }
+
+    /** @parm lastAddedMillis timestamp in millis used as a cutoff for last added playlist */
+    public void setLastAddedCutoff(long lastAddedMillis) {
+        mPreferences.edit().putLong(LAST_ADDED_CUTOFF, lastAddedMillis).apply();
     }
 }

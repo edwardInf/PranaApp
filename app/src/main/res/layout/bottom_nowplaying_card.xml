@@ -28,8 +28,8 @@
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/album_art_nowplayingcard"
             xmlns:app="http://schemas.android.com/apk/res-auto"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
             android:src="@drawable/ic_empty_music2"
             app:civ_border_width="1dp"
             app:civ_border_color="#FFFFFF"

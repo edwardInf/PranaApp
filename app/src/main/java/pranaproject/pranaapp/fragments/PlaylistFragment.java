@@ -101,7 +101,7 @@ public class PlaylistFragment extends Fragment {
 
             @Override
             public Fragment getItem(int position) {
-                return PlaylistPagerFragment.newInstance(position);
+                return PlaylistPagerFragment.newInstance(position,true);
             }
 
         };

@@ -2,81 +2,107 @@ package pranaproject.pranaapp.fragments;
 
 
 import android.app.Activity;
-import android.content.Context;
+import android.content.Intent;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
-import android.widget.TextView;
 
-import java.util.HashMap;
+import com.afollestad.appthemeengine.ATE;
+
+import java.util.ArrayList;
 import java.util.List;
 
 import pranaproject.pranaapp.R;
+import pranaproject.pranaapp.adapters.ListaRepAdapter;
 import pranaproject.pranaapp.adapters.SongsListAdapter;
 import pranaproject.pranaapp.dataloaders.PlaylistLoader;
+import pranaproject.pranaapp.dialogs.CrearPlaylistDialog;
 import pranaproject.pranaapp.models.Playlist;
 import pranaproject.pranaapp.subfragments.PlaylistListFragment;
 import pranaproject.pranaapp.subfragments.PlaylistPagerFragment;
 import pranaproject.pranaapp.utils.Constants;
+import pranaproject.pranaapp.utils.PreferencesUtility;
+import pranaproject.pranaapp.widgets.DividerItemDecoration;
 import pranaproject.pranaapp.widgets.MultiViewPager;
 
-/**
- */
 public class ListaRepFragment extends Fragment {
 
-    int playlistcount;
-    FragmentStatePagerAdapter adapter;
-    MultiViewPager pager;
-    long playlistID;
-    public static HashMap<String, Runnable> playlistsMap = new HashMap<>();
 
-    public static Context mContext;
-    public static SongsListAdapter mAdapter;
-    RecyclerView recyclerView;
-    TextView playlistname;
-    public ImageButton btnaddS;
-    public static TextView playlistN;
-    public static TextView canPlaylistN;
-    public static RecyclerView recyclerList;
-    private SongsListAdapter lAdapter;
-    public static String action;
-    public static boolean playlistFF=false;
-    public ListaRepFragment() {
-        // Required empty public constructor
-    }
+    private int playlistcount;
+    private FragmentStatePagerAdapter adapter;
+    private MultiViewPager pager;
+    private RecyclerView recyclerView;
+    private GridLayoutManager layoutManager;
+    private RecyclerView.ItemDecoration itemDecoration;
 
+    private PreferencesUtility mPreferences;
+    private boolean isGrid;
+    private boolean isDefault;
+    private boolean showAuto;
+    private ListaRepAdapter mAdapter;
+
+    private List<Playlist> playlists = new ArrayList<>();
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mPreferences = PreferencesUtility.getInstance(getActivity());
+        isGrid = mPreferences.getPlaylistView() == Constants.PLAYLIST_VIEW_GRID;
+        isDefault = mPreferences.getPlaylistView() == Constants.PLAYLIST_VIEW_DEFAULT;
+        showAuto = mPreferences.showAutoPlaylist();
 
-        View rootView = inflater.inflate(R.layout.fragment_lista_rep, container, false);
+    }
 
-        Toolbar toolbar = (Toolbar) rootView.findViewById(R.id.toolbar_listrep);
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View rootView = inflater.inflate(
+                R.layout.fragment_lista_rep, container, false);
+
+        Toolbar toolbar = (Toolbar) rootView.findViewById(R.id.toolbar);
+        pager = (MultiViewPager) rootView.findViewById(R.id.playlistpager);
+        recyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview);
+
+
         ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
 
         final ActionBar ab = ((AppCompatActivity) getActivity()).getSupportActionBar();
         ab.setHomeAsUpIndicator(R.drawable.ic_menu);
         ab.setDisplayHomeAsUpEnabled(true);
-        ab.setTitle("LISTA");
+        ab.setTitle("Lista de Reproduccion");
 
-        final List<Playlist> playlists = PlaylistLoader.getPlaylists(getActivity(), true);
+        playlists = PlaylistLoader.getPlaylists(getActivity(), showAuto);
         playlistcount = playlists.size();
 
-        pager = (MultiViewPager) rootView.findViewById(R.id.playlistpager_li);
+        if (isDefault) {
+            initPager();
+        } else {
+            initRecyclerView();
+        }
 
+        return rootView;
+
+    }
+
+
+    private void initPager() {
+        pager.setVisibility(View.VISIBLE);
+        recyclerView.setVisibility(View.GONE);
+        recyclerView.setAdapter(null);
         adapter = new FragmentStatePagerAdapter(getChildFragmentManager()) {
 
             @Override
@@ -86,105 +112,196 @@ public class ListaRepFragment extends Fragment {
 
             @Override
             public Fragment getItem(int position) {
-                return PlaylistPagerFragment.newInstance(position);
+                return PlaylistPagerFragment.newInstance(position,false);
             }
 
         };
         pager.setAdapter(adapter);
-        pager.setOffscreenPageLimit(5);
+        pager.setOffscreenPageLimit(3);
+    }
+
+    private void initRecyclerView() {
+        recyclerView.setVisibility(View.VISIBLE);
+        pager.setVisibility(View.GONE);
+        setLayoutManager();
+        mAdapter = new ListaRepAdapter(getActivity(), playlists);
+
+        recyclerView.setAdapter(mAdapter);
+        //to add spacing between cards
+        if (getActivity() != null) {
+            setItemDecoration();
+        }
+    }
 
 
-        playlistN = (TextView) rootView.findViewById(R.id.txt_namePlaylistList);
-        canPlaylistN = (TextView) rootView.findViewById(R.id.txt_cancPlaylist);
-        btnaddS = (ImageButton) rootView.findViewById(R.id.btn_addPistPLay);
-        btnaddS.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+    private void setLayoutManager() {
+        if (isGrid) {
+            layoutManager = new GridLayoutManager(getActivity(), 2);
+        } else {
+            layoutManager = new GridLayoutManager(getActivity(), 1);
+        }
+        recyclerView.setLayoutManager(layoutManager);
+    }
 
-                Fragment fragment = new SongsFragment();
-                FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                transaction.replace(R.id.fragment_playlist, fragment).commitAllowingStateLoss();
-            }
-        });
+    private void setItemDecoration() {
+        if (isGrid) {
+            int spacingInPixels = getActivity().getResources().getDimensionPixelSize(R.dimen.spacing_card_album_grid);
+            itemDecoration = new SpacesItemDecoration(spacingInPixels);
+        } else {
+            itemDecoration = new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL_LIST);
+        }
+        recyclerView.addItemDecoration(itemDecoration);
+    }
+
+    private void updateLayoutManager(int column) {
+        recyclerView.removeItemDecoration(itemDecoration);
+        recyclerView.setAdapter(new ListaRepAdapter(getActivity(), PlaylistLoader.getPlaylists(getActivity(), showAuto)));
+        layoutManager.setSpanCount(column);
+        layoutManager.requestLayout();
+        setItemDecoration();
+    }
 
 
-        fragmentManager = getFragmentManager();
-        activity= getActivity();
+    public class SpacesItemDecoration extends RecyclerView.ItemDecoration {
+        private int space;
 
-        return rootView;
+        public SpacesItemDecoration(int space) {
+            this.space = space;
+        }
+
+        @Override
+        public void getItemOffsets(Rect outRect, View view,
+                                   RecyclerView parent, RecyclerView.State state) {
+
+
+            outRect.left = space;
+            outRect.top = space;
+            outRect.right = space;
+            outRect.bottom = space;
+
+        }
+    }
+
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        if (PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("dark_theme", false)) {
+            ATE.apply(this, "dark_theme");
+        } else {
+            ATE.apply(this, "light_theme");
+        }
+    }
+
+    @Override
+    public void onActivityCreated(final Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.menu_lista_rep, menu);
+
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        if (showAuto) {
+            menu.findItem(R.id.action_view_auto_playlists).setTitle("Ver Listas Automaticas");
+        } else menu.findItem(R.id.action_view_auto_playlists).setTitle("Ver Todo");
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_new_playlist:
+                CrearPlaylistDialog.newInstance().show(getChildFragmentManager(), "CREATE_PLAYLIST");
+                return true;
+            case R.id.menu_show_as_list:
+                mPreferences.setPlaylistView(Constants.PLAYLIST_VIEW_LIST);
+                isGrid = false;
+                isDefault = false;
+                initRecyclerView();
+                updateLayoutManager(1);
+                return true;
+            case R.id.menu_show_as_grid:
+                mPreferences.setPlaylistView(Constants.PLAYLIST_VIEW_GRID);
+                isGrid = true;
+                isDefault = false;
+                initRecyclerView();
+                updateLayoutManager(2);
+                return true;
+            case R.id.menu_show_as_default:
+                mPreferences.setPlaylistView(Constants.PLAYLIST_VIEW_DEFAULT);
+                isDefault = true;
+                initPager();
+                return true;
+            case R.id.action_view_auto_playlists:
+                if (showAuto) {
+                    showAuto = false;
+                    mPreferences.setToggleShowAutoPlaylist(false);
+                } else {
+                    showAuto = true;
+                    mPreferences.setToggleShowAutoPlaylist(true);
+                }
+                reloadPlaylists();
+                getActivity().invalidateOptionsMenu();
+                break;
+
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     public void updatePlaylists(final long id) {
-        final List<Playlist> playlists = PlaylistLoader.getPlaylists(getActivity(), true);
+        playlists = PlaylistLoader.getPlaylists(getActivity(), showAuto);
         playlistcount = playlists.size();
-        adapter.notifyDataSetChanged();
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                for (int i = 0; i < playlists.size(); i++) {
-                    long playlistid = playlists.get(i).id;
-                    if (playlistid == id) {
-                        pager.setCurrentItem(i);
-                        break;
+
+        if (isDefault) {
+            adapter.notifyDataSetChanged();
+            if (id != -1) {
+                Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        for (int i = 0; i < playlists.size(); i++) {
+                            long playlistid = playlists.get(i).id;
+                            if (playlistid == id) {
+                                pager.setCurrentItem(i);
+                                break;
+                            }
+                        }
                     }
-                }
+                }, 200);
             }
-        }, 200);
 
-    }
-
-
-    public static String c;
-    public static long idplay;
-    public static Activity activity;
-    public static FragmentManager fragmentManager;
-
-
-    public static void showDetallePlaylist(String playlistName, String canciones,String action,
-                                           long firstAlbumID,long playlistID,Context context) {
-        playlistN.setText(playlistName);
-        canPlaylistN.setText(canciones);
-        c = action;
-        String idplay = Long.toString(playlistID);
-
-
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        Bundle bundle=new Bundle();
-        bundle.putLong(Constants.PLAYLIST_ID, playlistID);
-        bundle.putLong(Constants.ALBUM_ID, firstAlbumID);
-        bundle.putString(Constants.PLAYLIST_NAME, playlistName);
-
-        switch (action){
-            case "navigate_playlist_lastadded":
-
-                bundle.putString("action", action);
-
-
-                break;
-            case "navigate_playlist_recent":
-                bundle.putString("action", action);
-
-                /*PlaylistListFragment fragobj2 = new PlaylistListFragment();
-                fragobj2.setArguments(bundle);
-                fragmentTransaction.add(R.id.framelayout_listplay, fragobj2);
-                fragmentTransaction.commit();*/
-                break;
-            case "navigate_playlist_toptracks":
-                bundle.putString("action", action);
-
-                break;
-            case "navigate_playlist":
-                bundle.putString("action", action);
-
-                break;
+        } else {
+            mAdapter.updateDataSet(playlists);
         }
-        PlaylistListFragment fragobj=new PlaylistListFragment();
-        fragobj.setArguments(bundle);
-
-        fragmentTransaction.add(R.id.framelayout_listplay, fragobj);
-        fragmentTransaction.commit();
-
     }
 
+    public void reloadPlaylists() {
+        playlists = PlaylistLoader.getPlaylists(getActivity(), showAuto);
+        playlistcount = playlists.size();
+
+        if (isDefault) {
+            initPager();
+        } else {
+            initRecyclerView();
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == Constants.ACTION_DELETE_PLAYLIST) {
+            if (resultCode == Activity.RESULT_OK) {
+                reloadPlaylists();
+            }
+
+        }
+    }
 }

@@ -21,6 +21,7 @@ import android.graphics.drawable.TransitionDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,6 +34,7 @@ import android.widget.TextView;
 
 import com.afollestad.appthemeengine.Config;
 import pranaproject.pranaapp.MusicPlayer;
+import pranaproject.pranaapp.MusicService;
 import pranaproject.pranaapp.R;
 import pranaproject.pranaapp.activities.BaseActivity;
 import pranaproject.pranaapp.listeners.MusicStateListener;
@@ -45,6 +47,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
+import net.steamcrafted.materialiconlib.MaterialDrawableBuilder;
 import net.steamcrafted.materialiconlib.MaterialIconView;
 
 public class QuickControlsFragment extends Fragment implements MusicStateListener {
@@ -71,11 +74,15 @@ public class QuickControlsFragment extends Fragment implements MusicStateListene
     private PlayPauseButton mPlayPause, mPlayPauseExpanded;
     private TextView mTitle, mTitleExpanded;
     private TextView mArtist, mArtistExpanded;
-    private ImageView mAlbumArt, mBlurredArt;
+    private ImageView mAlbumArt, mBlurredArt, mPlaying, shuffle, repeat;
     private View rootView;
     private View playPauseWrapper, playPauseWrapperExpanded;
     private MaterialIconView previous, next;
     private boolean duetoplaypause = false;
+    private String ateKey;
+    public int accentColor;
+
+
     private final View.OnClickListener mPlayPauseListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -137,6 +144,11 @@ public class QuickControlsFragment extends Fragment implements MusicStateListene
         mArtist = (TextView) rootView.findViewById(R.id.artist);
         mTitleExpanded = (TextView) rootView.findViewById(R.id.song_title);
         mArtistExpanded = (TextView) rootView.findViewById(R.id.song_artist);
+        shuffle = (ImageView) rootView.findViewById(R.id.shuffle);
+        repeat = (ImageView) rootView.findViewById(R.id.repeat);
+
+        mPlaying = (ImageView) rootView.findViewById(R.id.imgSongPlaying);
+
 
         mAlbumArt = (ImageView) rootView.findViewById(R.id.album_art_nowplayingcard);
         mBlurredArt = (ImageView) rootView.findViewById(R.id.blurredAlbumart);
@@ -200,18 +212,22 @@ public class QuickControlsFragment extends Fragment implements MusicStateListene
 
         ((BaseActivity) getActivity()).setMusicStateListenerListener(this);
 
+        updateShuffleState();
+        updateRepeatState();
+
         return rootView;
     }
 
     public void updateNowplayingCard() {
         mTitle.setText(MusicPlayer.getTrackName());
         mArtist.setText(MusicPlayer.getArtistName());
+
         mTitleExpanded.setText(MusicPlayer.getTrackName());
         mArtistExpanded.setText(MusicPlayer.getArtistName());
         if (!duetoplaypause) {
-            ImageLoader.getInstance().displayImage(TimberUtils.getAlbumArtUri(MusicPlayer.getCurrentAlbumId()).toString(), mAlbumArt,
+            ImageLoader.getInstance().displayImage(TimberUtils.getAlbumArtUri(MusicPlayer.getCurrentAlbumId()).toString(), mPlaying,
                     new DisplayImageOptions.Builder().cacheInMemory(true)
-                            .showImageOnFail(R.drawable.ic_empty_music2)
+                            .showImageOnFail(R.drawable.ic_prueba2)
                             .resetViewBeforeLoading(true)
                             .build(), new ImageLoadingListener() {
                         @Override
@@ -221,15 +237,18 @@ public class QuickControlsFragment extends Fragment implements MusicStateListene
 
                         @Override
                         public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
-                            Bitmap failedBitmap = ImageLoader.getInstance().loadImageSync("drawable://" + R.drawable.ic_empty_music2);
+                            Bitmap failedBitmap = ImageLoader.getInstance().loadImageSync("drawable://" + R.drawable.ic_prueba2);
                             if (getActivity() != null)
                                 new setBlurredAlbumArt().execute(failedBitmap);
+                            mAlbumArt.setImageDrawable(mPlaying.getDrawable());
+
                         }
 
                         @Override
                         public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
                             if (getActivity() != null)
                                 new setBlurredAlbumArt().execute(loadedImage);
+                            mAlbumArt.setImageDrawable(mPlaying.getDrawable());
 
                         }
 
@@ -327,6 +346,7 @@ public class QuickControlsFragment extends Fragment implements MusicStateListene
                 } else {
                     mBlurredArt.setImageDrawable(result);
                 }
+
             }
         }
 
@@ -335,5 +355,63 @@ public class QuickControlsFragment extends Fragment implements MusicStateListene
         }
     }
 
+    public void updateShuffleState() {
+        if (shuffle != null && getActivity() != null) {
+            MaterialDrawableBuilder builder = MaterialDrawableBuilder.with(getActivity())
+                    .setIcon(MaterialDrawableBuilder.IconValue.SHUFFLE)
+                    .setSizeDp(30);
+
+            if (getActivity() != null) {
+                if (MusicPlayer.getShuffleMode() == 0) {
+                    builder.setColor(Config.textColorPrimary(getActivity(), ateKey));
+                } else builder.setColor(Config.accentColor(getActivity(), ateKey));
+            }
+
+            shuffle.setImageDrawable(builder.build());
+            shuffle.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    MusicPlayer.cycleShuffle();
+                    updateShuffleState();
+                    updateRepeatState();
+                }
+            });
+        }
+    }
+
+    public void updateRepeatState() {
+        if (repeat != null && getActivity() != null) {
+            MaterialDrawableBuilder builder = MaterialDrawableBuilder.with(getActivity())
+                    .setSizeDp(30);
+
+            if (MusicPlayer.getRepeatMode() == MusicService.REPEAT_NONE) {
+                builder.setIcon(MaterialDrawableBuilder.IconValue.REPEAT);
+                builder.setColor(Config.textColorPrimary(getActivity(), ateKey));
+            } else if (MusicPlayer.getRepeatMode() == MusicService.REPEAT_CURRENT) {
+                builder.setIcon(MaterialDrawableBuilder.IconValue.REPEAT_ONCE);
+                builder.setColor(Config.accentColor(getActivity(), ateKey));
+            } else if (MusicPlayer.getRepeatMode() == MusicService.REPEAT_ALL) {
+                builder.setColor(Config.accentColor(getActivity(), ateKey));
+                builder.setIcon(MaterialDrawableBuilder.IconValue.REPEAT);
+            }
+
+
+            repeat.setImageDrawable(builder.build());
+            repeat.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    MusicPlayer.cycleRepeat();
+                    updateRepeatState();
+                    updateShuffleState();
+                }
+            });
+        }
+    }
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        ateKey = Helpers.getATEKey(getActivity());
+        accentColor = Config.accentColor(getActivity(), ateKey);
+    }
 
 }

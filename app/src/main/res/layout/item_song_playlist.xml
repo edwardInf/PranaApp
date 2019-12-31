@@ -1,6 +1,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="fill_parent"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?attr/selectableItemBackground"
     android:orientation="vertical"
@@ -28,6 +28,7 @@
             android:layout_height="wrap_content"
             android:layout_marginRight="10dp"
             android:layout_toRightOf="@+id/albumArt"
+            android:layout_toLeftOf="@+id/popup_menu"
             android:orientation="vertical"
             android:paddingLeft="10dp"
             android:paddingTop="5dp">
@@ -52,6 +53,18 @@
                 android:textColor="@color/colorPrimaryBlack"
                 android:textSize="12sp" />
         </LinearLayout>
+
+        <ImageView
+            android:id="@+id/popup_menu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="12dp"
+            android:src="@drawable/ic_more"
+            android:padding="5dp"
+            />
+
     </RelativeLayout>
 
 </LinearLayout>

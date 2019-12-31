@@ -22,7 +22,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.transition.Transition;
@@ -41,9 +40,8 @@ import pranaproject.pranaapp.activities.PlaylistDetalleActivity;
 import pranaproject.pranaapp.activities.SearchActivity;
 import pranaproject.pranaapp.fragments.AlbumDetailFragment;
 import pranaproject.pranaapp.fragments.ArtistDetailFragment;
-import pranaproject.pranaapp.fragments.HomeFragment;
+import pranaproject.pranaapp.fragments.GenreDetailFragment;
 import pranaproject.pranaapp.fragments.PlaylistFragment;
-import pranaproject.pranaapp.subfragments.PlaylistListFragment;
 //import pranaproject.pranaapp.nowplaying.Timber1;
 //import pranaproject.pranaapp.nowplaying.Timber2;
 //import pranaproject.pranaapp.nowplaying.Timber3;
@@ -55,7 +53,6 @@ public class NavigationUtils {
 
     @TargetApi(21)
     public static void navigateToAlbum(Activity context, long albumID, Pair<View, String> transitionViews) {
-
         FragmentTransaction transaction = ((AppCompatActivity) context).getSupportFragmentManager().beginTransaction();
         Fragment fragment;
 
@@ -75,6 +72,21 @@ public class NavigationUtils {
         transaction.addToBackStack(null).commit();
 
     }
+
+    public static void navigateToGenres(Activity context, long id, Pair<View, String> transitionViews) {
+        FragmentTransaction transaction = ((AppCompatActivity) context).getSupportFragmentManager().beginTransaction();
+        Fragment fragment;
+
+        transaction.setCustomAnimations(R.anim.activity_fade_in,
+                R.anim.activity_fade_out, R.anim.activity_fade_in, R.anim.activity_fade_out);
+        fragment = GenreDetailFragment.newInstance(id, false, null);
+
+        transaction.hide(((AppCompatActivity) context).getSupportFragmentManager().findFragmentById(R.id.fragment_container));
+        transaction.add(R.id.fragment_container, fragment);
+        transaction.addToBackStack(null).commit();
+
+    }
+
 
     @TargetApi(21)
     public static void navigateToArtist(Activity context, long artistID, Pair<View, String> transitionViews) {
@@ -144,42 +156,24 @@ public class NavigationUtils {
         context.startActivity(intent);
     }
 
-    @TargetApi(21)
-    public static void navigateToPlaylistDet (Activity context, String action, long firstAlbumID,
-                                                 String playlistName,
-                                                 long playlistID) {
-
-        Bundle bundle=new Bundle();
-        bundle.putLong(Constants.PLAYLIST_ID, playlistID);
-        bundle.putLong(Constants.ALBUM_ID, firstAlbumID);
-        bundle.putString(Constants.PLAYLIST_NAME, playlistName);
-        bundle.putString("tipo", action);
-        PlaylistFragment fragobj=new PlaylistFragment();
-        fragobj.setArguments(bundle);
-
-
-
-    }
 
     @TargetApi(21)
     public static void navigateToPlaylistDetalle(Activity context, String action, long firstAlbumID,
                                                  String playlistName, int foregroundcolor,
                                                  long playlistID, ArrayList<Pair> transitionViews) {
         final Intent intent = new Intent(context, PlaylistDetalleActivity.class);
-        if (!PreferencesUtility.getInstance(context).getSystemAnimations()) {
-            intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-        }
         intent.setAction(action);
         intent.putExtra(Constants.PLAYLIST_ID, playlistID);
         intent.putExtra(Constants.PLAYLIST_FOREGROUND_COLOR, foregroundcolor);
         intent.putExtra(Constants.ALBUM_ID, firstAlbumID);
         intent.putExtra(Constants.PLAYLIST_NAME, playlistName);
+        intent.putExtra(Constants.ACTIVITY_TRANSITION, transitionViews != null);
 
-        if (TimberUtils.isLollipop() && PreferencesUtility.getInstance(context).getAnimations()) {
-            //ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(MainActivity.getInstance(), transitionViews.get(0), transitionViews.get(1), transitionViews.get(2));
-            //context.startActivity(intent, options.toBundle());
+        if (transitionViews != null && TimberUtils.isLollipop()) {
+            ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(context, transitionViews.get(0), transitionViews.get(1), transitionViews.get(2));
+            context.startActivityForResult(intent, Constants.ACTION_DELETE_PLAYLIST, options.toBundle());
         } else {
-            context.startActivity(intent);
+            context.startActivityForResult(intent, Constants.ACTION_DELETE_PLAYLIST);
         }
     }
 
@@ -219,5 +213,6 @@ public class NavigationUtils {
 
         return null;
     }
+
 
 }

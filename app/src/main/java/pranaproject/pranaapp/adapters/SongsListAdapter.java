@@ -20,8 +20,6 @@ import pranaproject.pranaapp.R;
 import pranaproject.pranaapp.dialogs.AddPlaylistDialog;
 import pranaproject.pranaapp.models.Song;
 import pranaproject.pranaapp.utils.Helpers;
-import pranaproject.pranaapp.utils.NavigationUtils;
-import pranaproject.pranaapp.utils.PreferencesUtility;
 import pranaproject.pranaapp.utils.TimberUtils;
 import pranaproject.pranaapp.widgets.BubbleTextGetter;
 
@@ -39,6 +37,9 @@ public class SongsListAdapter extends RecyclerView.Adapter<SongsListAdapter.Item
     private boolean isPlaylist;
     private int lastPosition = -1;
     private String ateKey;
+    private long playlistId;
+
+
 
     public SongsListAdapter(AppCompatActivity context, List<Song> arraylist, boolean isPlaylistSong) {
         this.arraylist = arraylist;
@@ -74,24 +75,24 @@ public class SongsListAdapter extends RecyclerView.Adapter<SongsListAdapter.Item
 
         ImageLoader.getInstance().displayImage(TimberUtils.getAlbumArtUri(localItem.albumId).toString(),
                 itemHolder.albumArt, new DisplayImageOptions.Builder().cacheInMemory(true)
-                        .showImageOnFail(R.drawable.ic_empty_music2).resetViewBeforeLoading(true).build());
+                        .showImageOnFail(R.drawable.ic_prueba2).resetViewBeforeLoading(true).build());
         if (MusicPlayer.getCurrentAudioId() == localItem.id) {
             itemHolder.title.setTextColor(Config.accentColor(mContext, ateKey));
         } else {
-            if (isPlaylist)
+            if (isPlaylist){
                 itemHolder.title.setTextColor(Color.BLACK);
-            else
-                itemHolder.title.setTextColor(Config.textColorPrimary(mContext, ateKey));
-        }
-
-
-
-        if (isPlaylist){
-        }
-        else{
-            setOnPopupMenuListener(itemHolder, i);
+                itemHolder.artist.setTextColor(Color.BLACK);
+            }
+            else{
+                itemHolder.title.setTextColor(Color.WHITE);
+                itemHolder.artist.setTextColor(Color.WHITE);
+                //itemHolder.title.setTextColor(Config.textColorPrimary(mContext, ateKey));
+            }
 
         }
+
+      setOnPopupMenuListener(itemHolder, i);
+
 
     }
 
@@ -172,13 +173,8 @@ public class SongsListAdapter extends RecyclerView.Adapter<SongsListAdapter.Item
             this.artist = (TextView) view.findViewById(R.id.song_artist);
             this.albumArt = (ImageView) view.findViewById(R.id.albumArt);
 
-            if (isPlaylist) {
-
-            } else {
                 this.popupMenu = (ImageView) view.findViewById(R.id.popup_menu);
-
-            }
-            view.setOnClickListener(this);
+                view.setOnClickListener(this);
         }
 
         @Override
@@ -202,6 +198,27 @@ public class SongsListAdapter extends RecyclerView.Adapter<SongsListAdapter.Item
 
         }
 
+    }
+
+
+    //////////////////////////////////
+
+    public void setPlaylistId(long playlistId) {
+        this.playlistId = playlistId;
+    }
+
+    public Song getSongAt(int i) {
+        return arraylist.get(i);
+    }
+
+    public void addSongTo(int i, Song song) {
+        arraylist.add(i, song);
+    }
+
+    //@Override
+    public void removeSongAt(int i) {
+        arraylist.remove(i);
+        updateDataSet(arraylist);
     }
 }
 

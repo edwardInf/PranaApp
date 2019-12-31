@@ -167,4 +167,29 @@ public final class SortOrder {
                 + " DESC";
     }
 
+    /**
+     * Genre song sort order entries.
+     */
+    public interface GenreSongSortOrder {
+        /* Album song sort order A-Z */
+        String SONG_A_Z = MediaStore.Audio.Media.DEFAULT_SORT_ORDER;
+
+        /* Album song sort order Z-A */
+        String SONG_Z_A = SONG_A_Z + " DESC";
+
+        /* Album song sort order track list */
+        String SONG_TRACK_LIST = MediaStore.Audio.Media.TRACK + ", "
+                + MediaStore.Audio.Media.DEFAULT_SORT_ORDER;
+
+    }
+    public interface GenreSortOrder {
+        /* Genre sort order A-Z */
+        String GENRE_A_Z = MediaStore.Audio.Genres.DEFAULT_SORT_ORDER;
+
+        /* Genre sort order Z-A */
+        String GENRE_Z_A = GENRE_A_Z + " DESC";
+
+
+    }
+
 }
